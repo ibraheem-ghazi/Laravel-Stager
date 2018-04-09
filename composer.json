@@ -1,0 +1,36 @@
+{
+    "name": "ibraheem-ghazi/stager",
+    "description": "Laravel state machine for eloquent",
+    "keywords": ["php", "stager"],
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Ibraheem Ghazi"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0|~5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "IbraheemGhazi\\Stager\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            ":vendor\\:package_name\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "IbraheemGhazi\\Stager\\StagerServiceProvider"
+            ]
+        }
+    }
+}
