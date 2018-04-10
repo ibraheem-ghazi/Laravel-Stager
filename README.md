@@ -24,8 +24,8 @@ Installation
 ==============
 
 ```
-$ composer require ibraheem-ghazi/stager
-$ php artisan vendor:publish --provider="\IbraheemGhazi\Stager\StagerServiceProvider"
+composer require ibraheem-ghazi/stager
+php artisan vendor:publish --provider="IbraheemGhazi\Stager\StagerServiceProvider"
 ```
 
 
