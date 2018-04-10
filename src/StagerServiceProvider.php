@@ -28,7 +28,7 @@ class StagerServiceProvider extends ServiceProvider
         $stateMachineConfig = config('state-machine');
 
         if(!$stateMachineConfig){
-            trigger_error('config/state-machine.php not found, please publish the config file and configure it.');
+            //trigger_error('config/state-machine.php not found, please publish the config file and configure it.');
         }
 
         $this->app->booted(function ()use($stateMachineConfig) {
