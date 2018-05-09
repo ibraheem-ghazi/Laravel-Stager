@@ -41,7 +41,7 @@ Configuration
 * state-column and init-state attributes are optional which by default are state-column = state and init-state is by default first state
 * each attribute key must be in kebab-case
 
-```
+```php
 <?php
 /**
  * On each modification happened to this config file you must run artisan command stager:generate to update files and ide helpers
