@@ -9,6 +9,7 @@ use \Illuminate\Support\ServiceProvider;
 use \Illuminate\Console\Scheduling\Schedule;
 use \Illuminate\Support\Facades\Event;
 
+use Artisan;
 
 class StagerServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,11 @@ class StagerServiceProvider extends ServiceProvider
         $stateMachineConfig = config('state-machine');
 
         if(!$stateMachineConfig){
+//             \Log::error('config/state-machine.php not found, please publish the config file and configure it.');
+//             return;
+            
+            Artisan::call('vendor:publish':['--provider'=>__CLASS__]);
+            
             //trigger_error('config/state-machine.php not found, please publish the config file and configure it.');
         }
 
