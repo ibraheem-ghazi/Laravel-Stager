@@ -52,9 +52,9 @@ class StagerGenerator extends Command
         $stateMachine = config('state-machine');
 
         foreach ($stateMachine as $model => $machine) {
-            if ($model !== 'config'){
+            if ($model !== 'config') {
                 $was_written = $this->writeModelNewContent($model, $machine);
-                $was_written && $this->generateIdeHelperFile($doc,$model,$machine);
+                $was_written && $this->generateIdeHelperFile($doc, $model, $machine);
             }
 
         }
@@ -91,7 +91,7 @@ class StagerGenerator extends Command
 
         $index = strpos($content, 'use');
 
-        $content = substr($content, 0, $index) .  $full_trait_ns_use  . substr($content, $index, strlen($content));
+        $content = substr($content, 0, $index) . $full_trait_ns_use . substr($content, $index, strlen($content));
         ////// end of start use outside the class
         /////////////////////////
 
@@ -137,7 +137,7 @@ class StagerGenerator extends Command
         if (is_array($states)) {
             foreach ($states as $name => $state) {
                 $constant_name = strtoupper($this->constants_prefix . str_replace('-', '_', $name));
-                is_string($state) && $state ='"'.addslashes($state).'"';
+                is_string($state) && $state = '"' . addslashes($state) . '"';
                 $code .= "const {$constant_name} = {$state};" . self::EOL_WIN;
             }
 
@@ -172,19 +172,18 @@ class StagerGenerator extends Command
 
         $code .= self::SUFFIX . self::EOL_WIN;
 
-        $code .= self::EOL_WIN;
 
         return $code;
     }
 
     private function getModelPath($model)
     {
-       try{
-           $reflector = new \ReflectionClass($model);
-           return $reflector->getFileName();
-       }catch (\Exception $e){
-           return false;
-       }
+        try {
+            $reflector = new \ReflectionClass($model);
+            return $reflector->getFileName();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     private function isModelExists($model)
@@ -205,7 +204,9 @@ class StagerGenerator extends Command
             return false;
         }
 
-        return @file_get_contents($this->getModelPath($model));
+        $content = @file_get_contents($this->getModelPath($model));
+
+        return $content ? str_replace("\r\n", "\n", $content) : false;
 
     }
 
@@ -261,9 +262,11 @@ class StagerGenerator extends Command
 
         $content = $this->getModelContent($model);
 
-        if(!$content) return false;
+        if (!$content) {
+            return false;
+        }
 
-        $content =  $this->getUseForInclude($content);
+        $content = $this->getUseForInclude($content);
 
         $content_part = $this->getSeparatedContent($content);
 
@@ -278,17 +281,18 @@ class StagerGenerator extends Command
         return false;
     }
 
-    private function generateIdeHelperFile(&$doc,$model,$machine){
-        $doc->openClass($model, function ()use($machine) {
+    private function generateIdeHelperFile(&$doc, $model, $machine)
+    {
+        $doc->openClass($model, function () use ($machine) {
             $inClassGen = new Doc;
 
-            foreach (array_get($machine,'states',[]) as $stateName=>$value) {
-                $inClassGen = $inClassGen->addMethod('is'.studly_case($stateName),[],'public',false);
+            foreach (array_get($machine, 'states', []) as $stateName => $value) {
+                $inClassGen = $inClassGen->addMethod('is' . studly_case($stateName), [], 'public', false);
             }
 
-            foreach (array_get($machine,'transitions',[]) as $transName=>$data) {
-                $inClassGen = $inClassGen->addMethod('do'.studly_case($transName),['...$args'],'public',false);
-                $inClassGen = $inClassGen->addMethod('can'.studly_case($transName),[],'public',false);
+            foreach (array_get($machine, 'transitions', []) as $transName => $data) {
+                $inClassGen = $inClassGen->addMethod('do' . studly_case($transName), ['...$args'], 'public', false);
+                $inClassGen = $inClassGen->addMethod('can' . studly_case($transName), [], 'public', false);
             }
 
             return $inClassGen;
