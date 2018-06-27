@@ -32,7 +32,7 @@ class StagerServiceProvider extends ServiceProvider
 //             \Log::error('config/state-machine.php not found, please publish the config file and configure it.');
 //             return;
             
-            Artisan::call('vendor:publish':['--provider'=>__CLASS__]);
+            Artisan::call('vendor:publish',['--provider'=>__CLASS__]);
             
             //trigger_error('config/state-machine.php not found, please publish the config file and configure it.');
         }
