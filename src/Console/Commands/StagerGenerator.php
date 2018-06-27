@@ -137,6 +137,7 @@ class StagerGenerator extends Command
         if (is_array($states)) {
             foreach ($states as $name => $state) {
                 $constant_name = strtoupper($this->constants_prefix . str_replace('-', '_', $name));
+                is_string($state) && $state ='"'.addslashes($state).'"';
                 $code .= "const {$constant_name} = {$state};" . self::EOL_WIN;
             }
 
