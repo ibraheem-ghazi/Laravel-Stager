@@ -30,21 +30,22 @@ trait Stager
     private $stateAttrName;
 
 
-    /**
-     * Check if the model needs to be booted and if so, do it.
+   /**
+     * auto boot stager trait.
      *
      * @return void
      */
-    protected function bootIfNotBooted()
+    public static function bootStager()
     {
-        parent::bootIfNotBooted();
-        $this->initStager();
+        static::addGlobalScope('stager',function(Builder $builder){
+            $builder->initStager();
+        });
     }
 
-    /**
+     /**
      * initial stager functionality which will be called from bootIfNotBooted function
      */
-    private function initStager()
+    public function scopeInitStager(Builder $builder)
     {
 
         if (!$this->stateMachine) {
