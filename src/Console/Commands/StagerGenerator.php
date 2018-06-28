@@ -52,7 +52,7 @@ class StagerGenerator extends Command
         $stateMachine = config('state-machine');
 
         foreach ($stateMachine as $model => $machine) {
-            if ($model !== 'config') {
+            if (!in_array($model,['config','schedules'])) {
                 $was_written = $this->writeModelNewContent($model, $machine);
                 $was_written && $this->generateIdeHelperFile($doc, $model, $machine);
             }
