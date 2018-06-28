@@ -316,12 +316,9 @@ trait Stager
                 return false;
             }
         }
-        dump("state updated");
         $this->{$this->stateAttrName} = $state_value;
-
-        //todo:  uncomment state db-update
-
-//      $this->update($this->stateAttrName,$state_value);
+        $this->save();
+//         $this->update($this->stateAttrName,$state_value);
 
     }
 
