@@ -58,7 +58,7 @@ class StagerGenerator extends Command
             }
 
         }
-        $path = config('state-machine.ide-helper-path','stager-methods-ide-helper.php');
+        $path = config('state-machine.config.ide-helper-path','stager-methods-ide-helper.php');
         $doc->exportFile($path);
 
         //TODO: clear auto generated fields from all models if not listed in config file state-machine
