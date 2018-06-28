@@ -6,6 +6,7 @@
 return [
 
     'config'=>[
+        'ide-helper-path'=>'stager-methods-ide-helper.php',
         'fail-throw-exception'=>true, //useful for debug , for production its better to turn it off
         'schedule-cronjob'=>'0 * * * *', //run cron job every hour once to handle schedule
 
