@@ -43,8 +43,9 @@ trait Stager
 
                 /**
                  * set the default column and attribute name for state
+                 * #NO NEED FOR THIS LINE#
                  */
-                $this->attributes[] = $this->stateAttrName;
+                //$this->attributes[] = $this->stateAttrName;
 
                 /**
                  * set Default state
