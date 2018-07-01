@@ -29,27 +29,12 @@ trait Stager
      */
     private $stateAttrName;
 
-
-   /**
-     * auto boot stager trait.
-     *
-     * @return void
-     */
-    public static function bootStager()
-    {
-        static::addGlobalScope('stager',function(Builder $builder){
-            $builder->initStager();
-        });
-    }
-
      /**
      * initial stager functionality which will be called from bootIfNotBooted function
      */
-    public function scopeInitStager(Builder $builder)
+    public function initStager()
     {
-
         if (!$this->stateMachine) {
-
             $this->stateMachine = config('state-machine.' . get_class());
             if ($this->hasValidStateMachine()) {
 
@@ -162,19 +147,14 @@ trait Stager
      */
     public function __call($name, $arguments)
     {
+        $this->initStager();
         if ($this->hasValidStateMachine()) {
-
-            foreach (['is' => true, 'can' => false, 'do' => false] as $prefix => $isState) {
-                if ($target_name = $this->checkValidMagicCall($name, $prefix, $isState)) {
-                    switch ($prefix) {
-                        case 'is':
-                            return $this->isStagerState($target_name);
-                        case 'can':
-                            return $this->canStagerTransition($target_name);
-                        case 'do':
-                            return $this->doStagerTransition($target_name, ...$arguments);
-                    }
-                }
+            if($target_name = $this->checkValidMagicCall($name, 'is', true)){
+                return $this->isStagerState($target_name);
+            }elseif(($target_name = $this->checkValidMagicCall($name, 'can', false))){
+                return $this->canStagerTransition($target_name);
+            }elseif(($target_name = $this->checkValidMagicCall($name, 'do', false))){
+                return $this->doStagerTransition($target_name, ...$arguments);
             }
         }
         return parent::__call($name, $arguments);
