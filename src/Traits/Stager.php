@@ -8,7 +8,7 @@
 
 namespace IbraheemGhazi\Stager\Traits;
 
-
+use \Illuminate\Database\Eloquent\Builder;
 use IbraheemGhazi\Stager\Events\afterTransition;
 use IbraheemGhazi\Stager\Events\beforeTransition;
 
