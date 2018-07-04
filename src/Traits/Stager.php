@@ -213,7 +213,7 @@ trait Stager
      * @param string $trans_name the target transition name
      * @return bool return TRUE when model can execute target transition or FALSE when can not
      */
-    private function canStagerTransition(string $trans_name)
+    public function canStagerTransition(string $trans_name)
     {
         $trans = array_get($this->stateMachine, 'transitions.' . kebab_case($trans_name));
         if (!is_array($trans)) {
@@ -237,7 +237,7 @@ trait Stager
      * @param array ...$args arguments you want to pass to Perform***Transition method
      * @return void
      */
-    private function doStagerTransition($trans_name, ...$args)
+    public function doStagerTransition($trans_name, ...$args)
     {
         if ($this->canStagerTransition($trans_name)) {
             $callable_name = 'pre' . studly_case($trans_name) . 'Transition';
@@ -286,7 +286,7 @@ trait Stager
      * @param $state the state you want to check
      * @return bool
      */
-    private function isStagerState($state)
+    public function isStagerState($state)
     {
         return array_get($this->stateMachine, 'states.' . kebab_case($state)) === $this->getCurrentStateValue();
     }
