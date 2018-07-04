@@ -1,8 +1,8 @@
-Stager
+Laravel Stager State Machine
 ==========
 
 
-This is a Laravel 5.6 package for eloquent models. Its purpose is to add state machien functionalty to models
+This is a Laravel 5.6 package for eloquent models. Its purpose is to add state machine functionalty to models
 
 
 Features
