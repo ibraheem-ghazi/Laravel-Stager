@@ -139,6 +139,8 @@ return [
 
 ```
 $ php artisan stager:generate
+-C or --clean clean auto generated code from all registered models 
+-M or -model \App\MyModel clean auto generated code from sepcified model
 ```
 this command will auto modify actual model file and add needed `use` statements and write needed constants from states
 
