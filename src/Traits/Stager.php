@@ -29,6 +29,16 @@ trait Stager
      */
     private $stateAttrName;
 
+    /**
+     * boot method
+     */
+    protected function bootIfNotBooted()
+    {
+        parent::bootIfNotBooted();
+        $this->initStager();
+
+    }
+
      /**
      * initial stager functionality which will be called from bootIfNotBooted function
      */
@@ -43,9 +53,8 @@ trait Stager
 
                 /**
                  * set the default column and attribute name for state
-                 * #NO NEED FOR THIS LINE#
                  */
-                //$this->attributes[] = $this->stateAttrName;
+//                $this->attributes[] = $this->stateAttrName;
 
                 /**
                  * set Default state
@@ -148,7 +157,6 @@ trait Stager
      */
     public function __call($name, $arguments)
     {
-        $this->initStager();
         if ($this->hasValidStateMachine()) {
             if($target_name = $this->checkValidMagicCall($name, 'is', true)){
                 return $this->isStagerState($target_name);
@@ -157,6 +165,8 @@ trait Stager
             }elseif(($target_name = $this->checkValidMagicCall($name, 'do', false))){
                 return $this->doStagerTransition($target_name, ...$arguments);
             }
+        }else{
+
         }
         return parent::__call($name, $arguments);
     }
