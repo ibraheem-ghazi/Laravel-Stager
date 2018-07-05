@@ -11,6 +11,7 @@ namespace IbraheemGhazi\Stager\Traits;
 use \Illuminate\Database\Eloquent\Builder;
 use IbraheemGhazi\Stager\Events\afterTransition;
 use IbraheemGhazi\Stager\Events\beforeTransition;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 trait Stager
 {
@@ -216,12 +217,11 @@ trait Stager
     public function canStagerTransition(string $trans_name)
     {
         $trans = array_get($this->stateMachine, 'transitions.' . kebab_case($trans_name));
-        if (!is_array($trans)) {
+        if (!is_array($trans) ||  !$this->checkGuardCanTransit($trans)) {
             return false;
         }
 
         $current_state = $this->getCurrentStateName();
-
 
         $valid_from = is_array(array_get($trans, 'from')) && in_array($current_state, array_get($trans, 'from')) || $current_state === array_get($trans, 'from');
 
@@ -229,13 +229,27 @@ trait Stager
 
     }
 
+    private function checkGuardCanTransit($transition_array){
+        $guards = array_get($transition_array,'guard') ?: '*';
+        if(is_array($guards)){
+            foreach ($guards as $guard){
+                if(auth($guard)->check()) return true;
+            }
+        }
+        $value = $guards === '*';
+        if(!$value && config('state-machine.config.unauthorized-gaurd-exception',true) === true) {
+            throw new UnauthorizedHttpException('','you are not authorized to perform this action');
+        }
+        return $value;
+    }
+
     /**
      *
      * execute the target transition
      *
-     * @param $trans_name the target transition name
+     * @param string $trans_name the target transition name
      * @param array ...$args arguments you want to pass to Perform***Transition method
-     * @return void
+     * @return Object|bool
      */
     public function doStagerTransition($trans_name, ...$args)
     {
