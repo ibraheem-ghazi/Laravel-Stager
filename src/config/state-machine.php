@@ -7,6 +7,7 @@ return [
 
     'config'=>[
         'ide-helper-path'=>'stager-methods-ide-helper.php',
+        'unauthorized-gaurd-exception'=>true,//should throw unauthorized exception if guard requesting this transition is not in guard array , if false then can method only return false without exception
         'fail-throw-exception'=>true, //useful for debug , for production its better to turn it off
         'schedule-cronjob'=>'0 * * * *', //run cron job every hour once to handle schedule
 
@@ -64,7 +65,7 @@ return [
             'payment-success' => [
                 'from' => 'pending',
                 'to' => 'payment-accepted',
-
+                'guard'=>['web'],//should be array of guards or string equal '*', [default = '*']
                 'affect'=>[
                     //relation => transiojn_of_relation
                       'order' => 'waiting-seller'
