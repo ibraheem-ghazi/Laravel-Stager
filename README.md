@@ -19,6 +19,7 @@ Features
 * support events before and after transitions 
 * support additional executions or extra conditions before access transition
 * auto generate ide helper file for magic functions
+* [new] guarded transitions
 
 Installation
 ==============
@@ -53,6 +54,7 @@ return [
         'ide-helper-path'=>'stager-methods-ide-helper.php',//where to save ide helper file (currently in root)
         'fail-throw-exception'=>true, //useful for debug , for production its better to turn it off
         'schedule-cronjob'=>'0 * * * *', //run cron job every hour once to handle schedule
+        'unauthorized-gaurd-exception'=>true,//should throw unauthorized exception if guard requesting this transition is not in guard array , if false then can method only return false without exception
 
         //generator config
         'constants-prefix'=>'STATE_', //
@@ -108,7 +110,7 @@ return [
             'payment-success' => [
                 'from' => 'pending',
                 'to' => 'payment-accepted',
-
+                'guard'=>['web'],//array of guards or string equal to '*' [default = '*']
                 //todo: affection class
                 'affect'=>[
                     //relation => transiojn_of_relation
