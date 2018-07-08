@@ -62,8 +62,8 @@ trait Stager
                  */
                 if (!$this->{$this->stateAttrName}) {
                     $ini_state = array_get($this->stateMachine, 'init-state');
-
-                    $ini_state_val = array_get($this->stateMachine, 'states.' . $ini_state, array_get($this->stateMachine, 'states.0'));
+                    $first_state_key = array_keys(array_get($this->stateMachine, 'states',[]));
+                    $ini_state_val = array_get($this->stateMachine, 'states.' . $ini_state, array_get($this->stateMachine, 'states.'.$first_state_key));
 
                     $this->{$this->stateAttrName} = $ini_state_val;
                 }
