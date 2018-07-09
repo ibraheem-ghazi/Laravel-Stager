@@ -93,9 +93,13 @@ class StagerGenerator extends Command
     {
         ///////////////////////////
         ///  start use outside the class
-        $full_trait_ns_use = "\nuse {$this->getTraitNameSpace()};\n";
+        $name_space = $this->getTraitNameSpace();
+        $full_trait_ns_use = "\nuse {$name_space};\n";
+        $name_space = ltrim($name_space,"\\");
+        $full_trait_ns_use_2 = "\nuse {$name_space};\n";
 
-        $content = str_replace(($full_trait_ns_use), '', $content);
+        $content = str_replace($full_trait_ns_use, '', $content);
+        $content = str_replace($full_trait_ns_use_2, "\n", $content);
 
         $index = strpos($content, 'use');
 
@@ -256,8 +260,10 @@ class StagerGenerator extends Command
     }
 
     private function isBooterDefined($model){
-        $reflectionClass = new \ReflectionClass($model);
-        return $reflectionClass->getMethod('bootIfNotBooted')->class === $model;
+        $content = $this->getModelContent($model);
+        return str_contains($content,' bootIfNotBooted');
+//        $reflectionClass = new \ReflectionClass($model);
+//        return $reflectionClass->getMethod('bootIfNotBooted')->class === $model;
     }
 
     private function getBooterDefinitionIndices($content)
