@@ -224,6 +224,27 @@ trait Stager
 
         $valid_from = is_array(array_get($trans, 'from')) && in_array($current_state, array_get($trans, 'from')) || $current_state === array_get($trans, 'from');
 
+        //relation status condition
+        $relation_state_cond = array_get($trans,'relation-state-condition');
+        if(is_array($relation_state_cond) && $valid_from){
+            foreach ($relation_state_cond as $relation => $status){
+                $can_trigger_error = config('state-machine.config.fail-throw-exception') === true;
+                !method_exists($this,$relation) && $can_trigger_error && trigger_error("relation {$relation} not exists");
+                !$this->relationLoaded($relation) && $this->load($relation);
+                $related_class = get_class($this->$relation()->getRelated());
+                $relation_state_machine = config('state-machine.'.$related_class);
+                if(!is_array($relation_state_machine)){
+                    $can_trigger_error && trigger_error("relation {$relation} of class {$related_class} does not have valid machine");
+                    return false;
+                }
+                $relation_state_column = array_get($relation_state_machine, 'state-column');
+                if($this->$relation->$relation_state_column!==$status){
+                    return false;
+                }
+            }
+            return true;
+        }
+
         return $valid_from;
 
     }
@@ -271,8 +292,10 @@ trait Stager
 
                 foreach ($affections as $relation => $transition) {
                     $callable_name = 'do' . studly_case($transition);
-                    if($this->relationLoaded($relation)) {
-                        $this->{$relation}->each->{$callable_name}();
+                    if($this->relationLoaded($relation) || $this->load($relation)) {
+                       is_null($this->{$relation}->each) ?
+                           $this->{$relation}->{$callable_name}() :
+                           $this->{$relation}->each->{$callable_name}();
                     }else{
                         if (config('state-machine.config.fail-throw-exception') === true) {
                             trigger_error("relation \"{$relation}\" does not exists or not loaded at [".__CLASS__."]");
