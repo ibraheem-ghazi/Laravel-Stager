@@ -65,6 +65,10 @@ return [
             'payment-success' => [
                 'from' => 'pending',
                 'to' => 'payment-accepted',
+                'relation-state-condition'=>[
+                   //relation class must be defined here in state-machine config
+                    'some-realtion'=>'status'
+                ],
                 'guard'=>['web'],//should be array of guards or string equal '*', [default = '*']
                 'affect'=>[
                     //relation => transiojn_of_relation
