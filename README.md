@@ -20,6 +20,7 @@ Features
 * support additional executions or extra conditions before access transition
 * auto generate ide helper file for magic functions
 * [new] guarded transitions
+* [new] pre transition realtion status checker
 
 Installation
 ==============
@@ -110,6 +111,10 @@ return [
             'payment-success' => [
                 'from' => 'pending',
                 'to' => 'payment-accepted',
+                'relation-state-condition'=>[
+                   //relation class must be defined here in state-machine config
+                    'some-realtion'=>'status'
+                ],
                 'guard'=>['web'],//array of guards or string equal to '*' [default = '*']
                 //todo: affection class
                 'affect'=>[
