@@ -21,6 +21,7 @@ Features
 * auto generate ide helper file for magic functions
 * [new] guarded transitions
 * [new] pre transition realtion status checker
+* [new] added support for collection transitions
 
 Installation
 ==============
