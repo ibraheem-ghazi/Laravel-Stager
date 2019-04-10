@@ -16,63 +16,65 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 trait Stager
 {
 
+    use StagerCollectionSupport;
+    
     /**
      *
      * current state machine defined for this model
      *
      * @var \Illuminate\Config\Repository|mixed
      */
-    private $stateMachine;
+    private static $stateMachine;
 
     /**
      * the name of column/attribute that store the current state of current model object
      * @var string
      */
-    private $stateAttrName;
+    private static $stateAttrName;
 
-    /**
-     * boot method
-     */
-    protected function bootIfNotBooted()
+    public static function bootStagerTrait()
     {
-        parent::bootIfNotBooted();
-        $this->initStager();
-
+        static::initStager();
     }
 
      /**
      * initial stager functionality which will be called from bootIfNotBooted function
      */
-    public function initStager()
+    public static function initStager()
     {
-        if (!$this->stateMachine) {
-            $this->stateMachine = config('state-machine.' . get_class());
-            if ($this->hasValidStateMachine()) {
-
-
-                $this->stateAttrName = array_get($this->stateMachine, 'state-column', 'state');
-
+        if (!static::$stateMachine) {
+            static::$stateMachine = config('state-machine.' . get_class());
+            if (static::hasValidStateMachine()) {
+                static::$stateAttrName = array_get(static::$stateMachine, 'state-column', 'state');
                 /**
                  * set the default column and attribute name for state
                  */
-//                $this->attributes[] = $this->stateAttrName;
-
-                /**
-                 * set Default state
-                 */
-                if (!$this->{$this->stateAttrName}) {
-                    $ini_state = array_get($this->stateMachine, 'init-state');
-                    $first_state_key = array_get(array_keys(array_get($this->stateMachine, 'states',[])),'0');
-                    $ini_state_val = array_get($this->stateMachine, 'states.' . $ini_state, array_get($this->stateMachine, 'states.'.$first_state_key));
-                    $this->{$this->stateAttrName} = $ini_state_val;
-                }
-
+                static::creating(function($model){
+                    /**
+                     * set Default state
+                     */
+                    if (!$model->{static::$stateAttrName}) {
+                        $ini_state = array_get(static::$stateMachine, 'init-state');
+                        $first_state_key = array_get(array_keys(array_get(static::$stateMachine, 'states',[])),'0');
+                        $ini_state_val = array_get(static::$stateMachine, 'states.' . $ini_state, array_get(static::$stateMachine, 'states.'.$first_state_key));
+                        $model->{static::$stateAttrName} = $ini_state_val;
+                    }
+                });
             } else {
                 trigger_error(__CLASS__ . ' does not have a valid defination for state-machine');
             }
         }
     }
 
+    public static function getStateMachine()
+    {
+        return static::$stateMachine;
+    }
+
+    public static function getStateAttributeName()
+    {
+        return static::$stateAttrName;
+    }
 
     /**
      * @param $query
@@ -102,7 +104,7 @@ trait Stager
      */
     public function getCurrentStateValue()
     {
-        return $this->{$this->stateAttrName};
+        return $this->{static::$stateAttrName};
     }
 
 
@@ -112,7 +114,7 @@ trait Stager
      */
     public function getCurrentStateName()
     {
-        $states = array_flip(array_get($this->stateMachine, 'states'));
+        $states = array_flip(array_get(static::$stateMachine, 'states'));
 
         return array_get($states, $this->getCurrentStateValue());
     }
@@ -142,9 +144,9 @@ trait Stager
      *
      * @return bool
      */
-    public function hasValidStateMachine()
+    public static function hasValidStateMachine()
     {
-        return is_array($this->stateMachine);
+        return is_array(static::$stateMachine);
     }
 
     /**
@@ -157,7 +159,7 @@ trait Stager
      */
     public function __call($name, $arguments)
     {
-        if ($this->hasValidStateMachine()) {
+        if (static::hasValidStateMachine()) {
             if($target_name = $this->checkValidMagicCall($name, 'is', true)){
                 return $this->isStagerState($target_name);
             }elseif(($target_name = $this->checkValidMagicCall($name, 'can', false))){
@@ -191,9 +193,9 @@ trait Stager
             if ($callPattern === $name) {
                 if (
                     //state prefix and exist state
-                    $isState && !is_null(array_get($this->stateMachine, 'states.' . $target)) ||
+                    $isState && !is_null(array_get(static::$stateMachine, 'states.' . $target)) ||
                     //transition prefix (not state) and exist transition
-                    !$isState && is_array(array_get($this->stateMachine, 'transitions.' . $target))
+                    !$isState && is_array(array_get(static::$stateMachine, 'transitions.' . $target))
 
 
                 ) {
@@ -215,7 +217,7 @@ trait Stager
      */
     public function canStagerTransition(string $trans_name)
     {
-        $trans = array_get($this->stateMachine, 'transitions.' . kebab_case($trans_name));
+        $trans = array_get(static::$stateMachine, 'transitions.' . kebab_case($trans_name));
         if (!is_array($trans) ||  !$this->checkGuardCanTransit($trans)) {
             return false;
         }
@@ -226,7 +228,9 @@ trait Stager
 
         //relation status condition
         $relation_state_cond = array_get($trans,'relation-state-condition');
+
         if(is_array($relation_state_cond) && $valid_from){
+            $this->loadMissing(array_keys($relation_state_cond));//allow load all required relation at once
             foreach ($relation_state_cond as $relation => $status){
                 $can_trigger_error = config('state-machine.config.fail-throw-exception') === true;
                 !method_exists($this,$relation) && $can_trigger_error && trigger_error("relation {$relation} not exists");
@@ -273,22 +277,34 @@ trait Stager
      */
     public function doStagerTransition($trans_name, ...$args)
     {
+
+        $is_collection = array_get(static::$stateMachine, 'transitions.' . kebab_case($trans_name) . '.collection');
+        if($is_collection){
+            if (config('state-machine.config.fail-throw-exception') === true) {
+                trigger_error("current transition [" . kebab_case($trans_name) . "] does not support single element update.");
+            } else {
+                return false;
+            }
+        }
+
         if ($this->canStagerTransition($trans_name)) {
             $callable_name = 'pre' . studly_case($trans_name) . 'Transition';
 
             if (!method_exists($this, $callable_name) || $this->{$callable_name}(...$args)) {
-                $new_state = array_get($this->stateMachine, 'transitions.' . kebab_case($trans_name) . '.to');
+                $new_state = array_get(static::$stateMachine, 'transitions.' . kebab_case($trans_name) . '.to');
                 if (!$new_state) {
                     trigger_error('state [' . kebab_case($trans_name) . '] not exists at [' . __CLASS__ . ']');
                 }
 
                 $old_state = $this->getCurrentStateName();
 
-                event(new beforeTransition($this, $trans_name, $old_state, $new_state));
+                event(new beforeTransition($this,null, $trans_name, $old_state, $new_state));
 
-                $this->updateStagerState($new_state);
+                $target_key = $this->getKeyName();
 
-                $affections = array_get($this->stateMachine, 'transitions.' . kebab_case($trans_name) . '.affect', []);
+                static::updateStagerState($new_state,$this->{$target_key});
+
+                $affections = array_get(static::$stateMachine, 'transitions.' . kebab_case($trans_name) . '.affect', []);
 
                 foreach ($affections as $relation => $transition) {
                     $callable_name = 'do' . studly_case($transition);
@@ -302,7 +318,7 @@ trait Stager
                         }
                     }
                 }
-                event(new afterTransition($this, $trans_name, $old_state, $new_state));
+                event(new afterTransition($this, null, $trans_name, $old_state, $new_state));
 
                 return $this;
             }
@@ -324,19 +340,19 @@ trait Stager
      */
     public function isStagerState($state)
     {
-        return array_get($this->stateMachine, 'states.' . kebab_case($state)) === $this->getCurrentStateValue();
+        return array_get(static::$stateMachine, 'states.' . kebab_case($state)) === $this->getCurrentStateValue();
     }
 
     /**
      *
      * update the state column/attribute to new state value by state name
      *
-     * @param $state the new state to be updated
+     * @param string $state the new state to be updated
+     * @param array|int $target_ids the target model id's which will be updated
      */
-    private function updateStagerState($state)
+    private static function updateStagerState($state,$target_ids)
     {
-
-        $state_value = array_get($this->stateMachine, 'states.' . kebab_case($state));
+        $state_value = array_get(static::$stateMachine, 'states.' . kebab_case($state));
         if (!$state_value) {
             if (config('state-machine.config.fail-throw-exception') === true) {
                 trigger_error('state is not allowed as NULL [' . __CLASS__ . ' => states => ' . kebab_case($state) . ']');
@@ -344,10 +360,13 @@ trait Stager
                 return false;
             }
         }
-        $this->{$this->stateAttrName} = $state_value;
-        $this->save();
-//         $this->update($this->stateAttrName,$state_value);
-
+        static::unguarded(function()use($state_value,$target_ids){
+            if(is_array($target_ids)){
+                static::whereIn((new static)->getKeyName(),$target_ids)->update([static::$stateAttrName=>$state_value]);
+            }else{
+                static::where((new static)->getKeyName(),$target_ids)->update([static::$stateAttrName=>$state_value]);
+            }
+        });
     }
 
 }
