@@ -361,6 +361,7 @@ trait Stager
             }
         }
         static::unguarded(function()use($state_value,$target_ids){
+            $target_ids instanceof \Illuminate\Support\Collection && $target_ids = $target_ids->toArray();
             if(is_array($target_ids)){
                 static::whereIn((new static)->getKeyName(),$target_ids)->update([static::$stateAttrName=>$state_value]);
             }else{
